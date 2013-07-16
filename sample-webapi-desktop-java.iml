@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="org.eclipse.jetty:jetty-server:8.1.10.v20130312" level="project" />
   </component>
 </module>
 
