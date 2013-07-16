@@ -1,5 +1,7 @@
 package com.tradestation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ning.http.client.*;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -39,16 +41,16 @@ public class Main {
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        embeddedServer.stopServer();
         String code = embeddedServer.getAuthorizationCode();
         System.out.println("DONE");
 
         System.out.println("Generating Access Token");
         api.setAccessToken(code);
         Token token = api.getAccessToken();
-        System.out.println("Token looks like this: abcd");
+        System.out.println("Token looks like this: " + token.getAccess_token());
         System.out.println("Getting a quote");
         System.out.println(api.GetQuotes(new String[]{"MSFT"}).getSymbol());
+        System.exit(0);
     }
 
     private static void browseTo(String url) {
@@ -60,7 +62,9 @@ public class Main {
         private final String CALLBACK;
         private final String APISECRET;
         private final String BASEURL;
-        private Token TOKEN;
+        private Token token;
+        private AsyncHttpClient client = new AsyncHttpClient();
+        private final ObjectMapper mapper = new ObjectMapper();
 
         public TradeStationWebApi(String redirectUri) {
             APIKEY = "your api key";
@@ -79,12 +83,41 @@ public class Main {
         }
 
         private Token getAccessToken() {
-            return TOKEN;
+            return this.token;
         }
 
         private void setAccessToken(String authorizationCode) {
             if (authorizationCode.isEmpty()) return;
-            this.TOKEN = new Token();
+            com.ning.http.client.Request request = new RequestBuilder("POST")
+                    .setUrl(BASEURL + "security/authorize")
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                    .setBody("grant_type=authorization_code&code=" + authorizationCode + "&client_id=" + APIKEY
+                            + "&redirect_uri=" + CALLBACK + "&client_secret=" + APISECRET)
+                    .build();
+
+            ListenableFuture<Response> response = null;
+            try {
+                response = this.client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                    @Override
+                    public Response onCompleted(Response response) throws Exception {
+                        return response;
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Token token = null;
+            if (response != null) {
+                try {
+                    String json = response.get().getResponseBody();
+                    token = this.mapper.readValue(json, Token.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            this.token = token;
         }
     }
 
@@ -121,19 +154,7 @@ public class Main {
         public void run() {
             try {
                 this.server.start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
                 this.server.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void stopServer() {
-            try {
-                this.server.stop();
             } catch (Exception e) {
                 e.printStackTrace();
             }
