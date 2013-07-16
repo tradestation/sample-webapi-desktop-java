@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author jjelinek@tradestation.com
- *
  */
 class Quote {
     private String Symbol;

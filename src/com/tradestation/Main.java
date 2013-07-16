@@ -21,13 +21,14 @@ public class Main {
 
     public static void main(String[] args) {
         // An embedded http server is required to automate capture of authorization code from login page
-        String sync = "";
-        EmbeddedHttpServer embeddedServer = new EmbeddedHttpServer(sync);
+        String codeSync = "";
+        EmbeddedHttpServer embeddedServer = new EmbeddedHttpServer(codeSync);
         (new Thread(embeddedServer)).start();
         System.out.println("Starting local web server");
 
         // wait for embedded http server to start
-        while (embeddedServer.notStarted()) { }
+        while (embeddedServer.notStarted()) {
+        }
         TradeStationWebApi api = new TradeStationWebApi("http://localhost:" + embeddedServer.getPort());
         try {
             System.out.println("Opening browser to go here: " + api.getAuthorizationUrl());
@@ -39,8 +40,8 @@ public class Main {
 
         // wait until the authorization code is received
         try {
-            synchronized (sync) {
-                sync.wait();
+            synchronized (codeSync) {
+                codeSync.wait();
             }
         } catch (InterruptedException ex) {
             ex.printStackTrace();
@@ -48,22 +49,39 @@ public class Main {
         String code = embeddedServer.getAuthorizationCode();
         System.out.println("DONE");
 
+        // Get Access Token
         System.out.println("Generating Access Token");
         api.setAccessToken(code);
         Token token = api.getAccessToken();
         System.out.println("Token looks like this: " + token.getAccess_token());
+
+        // Get Quotes
         System.out.print("Provide a list of quote symbols to retrieve (example: MSFT,GOOG):");
         String input = new Scanner(System.in).nextLine();
         String[] symbols = input.split(",");
         for (Quote quote : api.getQuotes(symbols)) {
-            System.out.println(String.format("Symbol: %s\t52-Week High: %s\t52-Week Low: %s",
+            System.out.println(String.format("Symbol: %s\t\t52-Wk High: %.2f\t\t52-Wk Low: %.2f",
                     quote.getSymbol(), quote.getHigh52Week(), quote.getLow52Week()));
         }
         System.exit(0);
     }
 
     private static void browseTo(String url) {
-
+        if (url.isEmpty()) return;
+        url = url.trim();
+        try {
+            if (OSValidator.isMac()) {
+                (new ProcessBuilder("open", url)).start();
+            }
+            if (OSValidator.isWindows()) {
+                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+            }
+            if (OSValidator.isUnix()) {
+                (new ProcessBuilder("sensible-browser", url)).start();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private static class TradeStationWebApi {
@@ -71,9 +89,9 @@ public class Main {
         private final String CALLBACK;
         private final String APISECRET;
         private final String BASEURL;
-        private Token token;
         private final AsyncHttpClient client = new AsyncHttpClient();
         private final ObjectMapper mapper = new ObjectMapper();
+        private Token token;
 
         public TradeStationWebApi(String redirectUri) {
             APIKEY = "your api key";
@@ -111,9 +129,9 @@ public class Main {
             if (response != null) {
                 try {
                     String json = response.get().getResponseBody();
-                    quotes = this.mapper.readValue(json, new TypeReference<ArrayList<Quote>>() {});
-                }
-                catch (Exception e) {
+                    quotes = this.mapper.readValue(json, new TypeReference<ArrayList<Quote>>() {
+                    });
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -182,7 +200,7 @@ public class Main {
                     } else {
                         response.getWriter().println(
                                 "<html><body><h1 style=\"color: red\">Authorization Code Not Received</h1>"
-                                + "<p>Check the URL for the \"?code=\" querystring parameter.</p></body></html>");
+                                    + "<p>Check the URL for the \"?code=\" query string parameter.</p></body></html>");
                     }
                 }
             });
@@ -208,6 +226,25 @@ public class Main {
 
         public String getAuthorizationCode() {
             return authorizationCode;
+        }
+    }
+
+    /**
+     * http://www.mkyong.com/java/how-to-detect-os-in-java-systemgetpropertyosname/
+     */
+    private static class OSValidator {
+        private static final String OS = System.getProperty("os.name").toLowerCase();
+
+        public static boolean isWindows() {
+            return (OS.contains("win"));
+        }
+
+        public static boolean isMac() {
+            return (OS.contains("mac"));
+        }
+
+        public static boolean isUnix() {
+            return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
         }
     }
 }
