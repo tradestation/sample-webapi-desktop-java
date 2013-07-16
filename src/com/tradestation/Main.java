@@ -1,7 +1,9 @@
 package com.tradestation;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.*;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -12,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Main {
 
@@ -48,8 +52,13 @@ public class Main {
         api.setAccessToken(code);
         Token token = api.getAccessToken();
         System.out.println("Token looks like this: " + token.getAccess_token());
-        System.out.println("Getting a quote");
-        System.out.println(api.GetQuotes(new String[]{"MSFT"}).getSymbol());
+        System.out.print("Provide a list of quote symbols to retrieve (example: MSFT,GOOG):");
+        String input = new Scanner(System.in).nextLine();
+        String[] symbols = input.split(",");
+        for (Quote quote : api.getQuotes(symbols)) {
+            System.out.println(String.format("Symbol: %s\t52-Week High: %s\t52-Week Low: %s",
+                    quote.getSymbol(), quote.getHigh52Week(), quote.getLow52Week()));
+        }
         System.exit(0);
     }
 
@@ -63,7 +72,7 @@ public class Main {
         private final String APISECRET;
         private final String BASEURL;
         private Token token;
-        private AsyncHttpClient client = new AsyncHttpClient();
+        private final AsyncHttpClient client = new AsyncHttpClient();
         private final ObjectMapper mapper = new ObjectMapper();
 
         public TradeStationWebApi(String redirectUri) {
@@ -78,8 +87,37 @@ public class Main {
                     URLEncoder.encode(CALLBACK, "UTF-8"));
         }
 
-        public Quote GetQuotes(String[] symbols) {
-            return new Quote();
+        public ArrayList<Quote> getQuotes(String[] symbols) {
+            com.ning.http.client.Request request = new RequestBuilder("GET")
+                    .setUrl(BASEURL + String.format("data/quote/%s", StringUtils.join(symbols, ",")))
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                    .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                    .build();
+
+            ListenableFuture<Response> response = null;
+            try {
+                response = this.client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                    @Override
+                    public Response onCompleted(Response response) throws Exception {
+                        return response;
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            ArrayList<Quote> quotes = new ArrayList<Quote>();
+
+            if (response != null) {
+                try {
+                    String json = response.get().getResponseBody();
+                    quotes = this.mapper.readValue(json, new TypeReference<ArrayList<Quote>>() {});
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return quotes;
         }
 
         private Token getAccessToken() {

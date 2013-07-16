@@ -3,7 +3,7 @@ package com.tradestation;
 /**
  * @author jjelinek@tradestation.com
  */
-public class Token {
+class Token {
     private String _accessToken, _refreshToken, _tokenType, _userid;
     private int _expiresIn;
 
