@@ -1,11 +1,11 @@
-package com.tradestation;
+package com.tradestation.webapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author jjelinek@tradestation.com
  */
-class Quote {
+public class Quote {
     private String Symbol;
     private String SymbolRoot;
     private String Description;

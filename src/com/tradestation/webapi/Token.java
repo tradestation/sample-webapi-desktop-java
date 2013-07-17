@@ -1,9 +1,9 @@
-package com.tradestation;
+package com.tradestation.webapi;
 
 /**
  * @author jjelinek@tradestation.com
  */
-class Token {
+public class Token {
     private String _accessToken, _refreshToken, _tokenType, _userid;
     private int _expiresIn;
 
