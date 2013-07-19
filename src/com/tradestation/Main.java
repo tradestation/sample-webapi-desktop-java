@@ -6,6 +6,9 @@ import com.tradestation.webapi.TradeStationWebApi;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
@@ -48,7 +51,7 @@ public class Main {
 
         Scanner input = new Scanner(System.in);
         // Get Quotes
-        System.out.print("Provide a list of quote symbols to retrieve (example: MSFT,GOOG):");
+        System.out.print("Provide a list of symbols to retrieve quotes (example: MSFT,GOOG):");
         String[] symbols = input.nextLine().split(",");
         for (Quote quote : api.getQuotes(symbols)) {
             System.out.println(String.format("Symbol: %s\t\t52-Wk High: %.2f\t\t52-Wk Low: %.2f",
@@ -56,9 +59,27 @@ public class Main {
         }
 
         // Get Streaming Barchart
-        System.out.print("Provide a barchart to stream (example: EURUSD):");
-        String symbol = input.nextLine();
-        api.getBarchartStream(symbol, 5, "Minute", "7-15-2013");
+        System.out.print("Provide a list of symbols to retrieve barchart stream (example: EURUSD,SPY):");
+        symbols = input.nextLine().split(",");
+        ArrayList<Thread> streams = new ArrayList<Thread>();
+
+        // Loop through the provided symbols and start streams and stream observers
+        for (String symbol : symbols) {
+            // create an observer
+            Thread stream = api.getBarchartStream(new BarchartStreamObserver(symbol), symbol, 5, "Minute",
+                    new SimpleDateFormat("M-dd-yyyy").format(new Date()));
+            stream.start();
+            streams.add(stream);
+        }
+
+        // Join on streams to get streaming data (should stream forever)
+        for (Thread stream : streams) {
+            try {
+                stream.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         System.exit(0);
     }
 

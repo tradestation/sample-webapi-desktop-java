@@ -6,8 +6,8 @@ import java.util.Date;
 
 /**
  * @author jjelinek@tradestation.com
- *
- * Intraday Bar data
+ *         <p/>
+ *         Intraday Bar data
  */
 public class IntradayBar {
     private double Close;
@@ -26,138 +26,138 @@ public class IntradayBar {
     private long UpVolume;
     private int Status;
 
-    int getStatus() {
+    public int getStatus() {
         return Status;
     }
 
     @JsonProperty("Status")
-    void setStatus(int status) {
+    public void setStatus(int status) {
         Status = status;
     }
 
-    double getClose() {
+    public double getClose() {
         return Close;
     }
 
     @JsonProperty("Close")
-    void setClose(double close) {
+    public void setClose(double close) {
         Close = close;
     }
 
-    int getDownTicks() {
+    public int getDownTicks() {
         return DownTicks;
     }
 
     @JsonProperty("DownTicks")
-    void setDownTicks(int downTicks) {
+    public void setDownTicks(int downTicks) {
         DownTicks = downTicks;
     }
 
-    long getDownVolume() {
+    public long getDownVolume() {
         return DownVolume;
     }
 
     @JsonProperty("DownVolume")
-    void setDownVolume(long downVolume) {
+    public void setDownVolume(long downVolume) {
         DownVolume = downVolume;
     }
 
-    double getHigh() {
+    public double getHigh() {
         return High;
     }
 
     @JsonProperty("High")
-    void setHigh(double high) {
+    public void setHigh(double high) {
         High = high;
     }
 
-    double getLow() {
+    public double getLow() {
         return Low;
     }
 
     @JsonProperty("Low")
-    void setLow(double low) {
+    public void setLow(double low) {
         Low = low;
     }
 
-    double getOpen() {
+    public double getOpen() {
         return Open;
     }
 
     @JsonProperty("Open")
-    void setOpen(double open) {
+    public void setOpen(double open) {
         Open = open;
     }
 
-    int getOpenInterest() {
+    public int getOpenInterest() {
         return OpenInterest;
     }
 
     @JsonProperty("OpenInterest")
-    void setOpenInterest(int openInterest) {
+    public void setOpenInterest(int openInterest) {
         OpenInterest = openInterest;
     }
 
-    Date getTimeStamp() {
+    public Date getTimeStamp() {
         return TimeStamp;
     }
 
     @JsonProperty("TimeStamp")
-    void setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(Date timeStamp) {
         TimeStamp = timeStamp;
     }
 
-    int getTotalTicks() {
+    public int getTotalTicks() {
         return TotalTicks;
     }
 
     @JsonProperty("TotalTicks")
-    void setTotalTicks(int totalTicks) {
+    public void setTotalTicks(int totalTicks) {
         TotalTicks = totalTicks;
     }
 
-    long getTotalVolume() {
+    public long getTotalVolume() {
         return TotalVolume;
     }
 
     @JsonProperty("TotalVolume")
-    void setTotalVolume(long totalVolume) {
+    public void setTotalVolume(long totalVolume) {
         TotalVolume = totalVolume;
     }
 
-    int getUnchangedTicks() {
+    public int getUnchangedTicks() {
         return UnchangedTicks;
     }
 
     @JsonProperty("UnchangedTicks")
-    void setUnchangedTicks(int unchangedTicks) {
+    public void setUnchangedTicks(int unchangedTicks) {
         UnchangedTicks = unchangedTicks;
     }
 
-    long getUnchangedVolume() {
+    public long getUnchangedVolume() {
         return UnchangedVolume;
     }
 
     @JsonProperty("UnchangedVolume")
-    void setUnchangedVolume(long unchangedVolume) {
+    public void setUnchangedVolume(long unchangedVolume) {
         UnchangedVolume = unchangedVolume;
     }
 
-    int getUpTicks() {
+    public int getUpTicks() {
         return UpTicks;
     }
 
     @JsonProperty("UpTicks")
-    void setUpTicks(int upTicks) {
+    public void setUpTicks(int upTicks) {
         UpTicks = upTicks;
     }
 
-    long getUpVolume() {
+    public long getUpVolume() {
         return UpVolume;
     }
 
     @JsonProperty("UpVolume")
-    void setUpVolume(long upVolume) {
+    public void setUpVolume(long upVolume) {
         UpVolume = upVolume;
     }
 }
