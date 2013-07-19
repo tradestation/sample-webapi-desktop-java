@@ -1,14 +1,15 @@
 package com.tradestation.webapi;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.*;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author jjelinek@tradestation.com
@@ -103,5 +104,96 @@ public class TradeStationWebApi {
         }
 
         this.token = token;
+    }
+
+    public void getBarchartStream(String symbol, int interval, String intervalType, String startDate) {
+        com.ning.http.client.Request request = new RequestBuilder("GET")
+                .setUrl(BASEURL + String.format("stream/barchart/%s/%s/%s/%s",
+                        symbol, interval, intervalType, startDate))
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                .build();
+
+        try {
+            this.client.executeRequest(request, new AsyncHandler<Response>() {
+                private String remainingPartialJsonData = "";
+
+                @Override
+                public void onThrowable(Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+
+                @Override
+                public STATE onBodyPartReceived(HttpResponseBodyPart httpResponseBodyPart) throws Exception {
+                    ByteArrayOutputStream responseBytes = new ByteArrayOutputStream();
+                    responseBytes.write(httpResponseBodyPart.getBodyPartBytes());
+
+                    remainingPartialJsonData += responseBytes.toString("UTF-8");
+                    String partialJsonData = remainingPartialJsonData;
+
+                    if (partialJsonData.contains("ERROR")) {
+                        return STATE.ABORT;
+                    }
+
+                    IntradayBar bar = processJson(partialJsonData, IntradayBar.class);
+                    if (bar != null) {
+                        System.out.println(bar.getTimeStamp());
+                    }
+
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public STATE onStatusReceived(HttpResponseStatus httpResponseStatus) throws Exception {
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public STATE onHeadersReceived(HttpResponseHeaders httpResponseHeaders) throws Exception {
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public Response onCompleted() throws Exception {
+                    return null;
+                }
+
+                private <T> T processJson(String partialJsonData, Class<T> type) throws IOException {
+                    String json = "";
+                    for (char c : partialJsonData.toCharArray()) {
+                        json += c;
+                        if (json.contains("{") && isValidJSON(json)) {
+                            remainingPartialJsonData = remainingPartialJsonData.replace(json, "");
+                            json = json.replace("\\/Date(", "").replace(")\\/", "");
+                            return mapper.readValue(json, type);
+                        }
+                    }
+                    return null;
+                }
+            }).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isValidJSON(String json) {
+        boolean valid = false;
+        try {
+            final com.fasterxml.jackson.core.JsonParser parser;
+            parser = mapper.getFactory().createParser(json);
+            while (parser.nextToken() != null) {
+            }
+            valid = true;
+        } catch (JsonParseException e) {
+            // not valid json, so swallow
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return valid;
     }
 }

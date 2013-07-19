@@ -46,14 +46,19 @@ public class Main {
         Token token = api.getAccessToken();
         System.out.println("Token looks like this: " + token.getAccess_token());
 
+        Scanner input = new Scanner(System.in);
         // Get Quotes
         System.out.print("Provide a list of quote symbols to retrieve (example: MSFT,GOOG):");
-        String input = new Scanner(System.in).nextLine();
-        String[] symbols = input.split(",");
+        String[] symbols = input.nextLine().split(",");
         for (Quote quote : api.getQuotes(symbols)) {
             System.out.println(String.format("Symbol: %s\t\t52-Wk High: %.2f\t\t52-Wk Low: %.2f",
                     quote.getSymbol(), quote.getHigh52Week(), quote.getLow52Week()));
         }
+
+        // Get Streaming Barchart
+        System.out.print("Provide a barchart to stream (example: EURUSD):");
+        String symbol = input.nextLine();
+        api.getBarchartStream(symbol, 5, "Minute", "7-15-2013");
         System.exit(0);
     }
 
