@@ -37,8 +37,17 @@ public class TradeStationWebApi {
     }
 
     public ArrayList<Quote> getQuotes(String[] symbols) {
+        // encode symbols (eg: replace " " with "%20")
+        ArrayList<String> encodedSymbols = new ArrayList<String>();
+        for (String symbol : symbols) {
+            try {
+                encodedSymbols.add(URLEncoder.encode(symbol, "UTF-8").replace("+", "%20"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
         Request request = new RequestBuilder("GET")
-                .setUrl(BASEURL + String.format("data/quote/%s", StringUtils.join(symbols, ",")))
+                .setUrl(BASEURL + String.format("data/quote/%s", StringUtils.join(encodedSymbols, ",")))
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
                 .build();

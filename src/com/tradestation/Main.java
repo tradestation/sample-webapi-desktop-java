@@ -54,8 +54,9 @@ public class Main {
         System.out.print("Provide a list of symbols to retrieve quotes (example: MSFT,GOOG):");
         String[] symbols = input.nextLine().split(",");
         for (Quote quote : api.getQuotes(symbols)) {
-            System.out.println(String.format("Symbol: %s\t\t52-Wk High: %.2f\t\t52-Wk Low: %.2f",
-                    quote.getSymbol(), quote.getHigh52Week(), quote.getLow52Week()));
+            System.out.println(String.format("Symbol: %s\t\tLast: %.2f\t\tLastPriceDisplay: %s\t\t"
+                    + "CountryCode: %s\t\tCurrency: %s", quote.getSymbol(), quote.getLast(),
+                    quote.getLastPriceDisplay(), quote.getCountryCode(), quote.getCurrency()));
         }
 
         // Get Streaming Barchart
