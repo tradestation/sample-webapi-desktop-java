@@ -9,7 +9,7 @@ This is a Java 6 sample console application that follows the Authorization Code 
 
 ## Configuration
 
-Modiyf your Key/Secret/BaseUrl:
+Modify your Key/Secret/BaseUrl:
 
     public TradeStationWebApi(String redirectUri) {
         APIKEY = "your api key";
