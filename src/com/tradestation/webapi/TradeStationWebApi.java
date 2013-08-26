@@ -1,7 +1,9 @@
 package com.tradestation.webapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.ning.http.client.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -132,5 +134,155 @@ public class TradeStationWebApi {
 
         // return the event thread
         return new Thread(streamSource);
+    }
+
+    public ArrayList<AccountInfo> getUserAccounts() {
+        Request request = new RequestBuilder("GET")
+                .setUrl(BASEURL + String.format("users/%s/accounts", this.token.getUserid()))
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                .build();
+
+        ListenableFuture<Response> response = null;
+        try {
+            response = client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                @Override
+                public Response onCompleted(Response response) throws Exception {
+                    return response;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<AccountInfo> accounts = new ArrayList<AccountInfo>();
+
+        if (response != null) {
+            try {
+                String json = response.get().getResponseBody();
+                accounts = mapper.readValue(json, new TypeReference<ArrayList<AccountInfo>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return accounts;
+    }
+
+    public ArrayList<OrderDetail> getOrders(String[] keys) {
+        Request request = new RequestBuilder("GET")
+                .setUrl(BASEURL + String.format("accounts/%s/orders", StringUtils.join(keys, ",")))
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                .build();
+
+        ListenableFuture<Response> response = null;
+        try {
+            response = client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                @Override
+                public Response onCompleted(Response response) throws Exception {
+                    return response;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<OrderDetail> orders = new ArrayList<OrderDetail>();
+
+        if (response != null) {
+            try {
+                String json = response.get().getResponseBody();
+                orders = mapper.readValue(json, new TypeReference<ArrayList<OrderDetail>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return orders;
+    }
+
+    public ArrayList<OrderResult> placeOrder(Order order) {
+        ObjectWriter objectWriter = mapper.writer().withDefaultPrettyPrinter();
+        String orderjson = null;
+        try {
+            orderjson = objectWriter.writeValueAsString(order);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        Request request = new RequestBuilder("POST")
+                .setUrl(String.format("%sorders", BASEURL))
+                .setBody(orderjson)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                .addHeader("Accept", "application/json")
+                .build();
+
+        ListenableFuture<Response> response = null;
+        try {
+            response = client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                @Override
+                public Response onCompleted(Response response) throws Exception {
+                    return response;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<OrderResult> result = null;
+        if (response != null) {
+            try {
+                String json = response.get().getResponseBody();
+                result = mapper.readValue(json, new TypeReference<ArrayList<OrderResult>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public ArrayList<Confirm> confirmOrder(Order order) {
+        ObjectWriter objectWriter = mapper.writer().withDefaultPrettyPrinter();
+        String orderjson = null;
+        try {
+            orderjson = objectWriter.writeValueAsString(order);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        Request request = new RequestBuilder("POST")
+                .setUrl(String.format("%sorders/confirm", BASEURL))
+                .setBody(orderjson)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer " + this.token.getAccess_token())
+                .addHeader("Accept", "application/json")
+                .build();
+
+        ListenableFuture<Response> response = null;
+        try {
+            response = client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                @Override
+                public Response onCompleted(Response response) throws Exception {
+                    return response;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<Confirm> result = null;
+        if (response != null) {
+            try {
+                String json = response.get().getResponseBody();
+                result = mapper.readValue(json, new TypeReference<ArrayList<Confirm>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 }

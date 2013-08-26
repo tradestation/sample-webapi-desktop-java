@@ -1,14 +1,13 @@
 package com.tradestation;
 
-import com.tradestation.webapi.Quote;
-import com.tradestation.webapi.Token;
-import com.tradestation.webapi.TradeStationWebApi;
+import com.tradestation.webapi.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Scanner;
 
 public class Main {
@@ -50,13 +49,71 @@ public class Main {
         System.out.println("Token looks like this: " + token.getAccess_token());
 
         Scanner input = new Scanner(System.in);
+
+        // Get Accounts
+        System.out.println(String.format("Accounts for: %s", token.getUserid()));
+        ArrayList<AccountInfo> accounts = api.getUserAccounts();
+        for (AccountInfo account : accounts) {
+            System.out.println(String.format("Key: %s\t\tName: %s\t\tType: %s\t\tTypeDescription: %s",
+                    account.getKey(), account.getName(), account.getType(), account.getTypeDescription()));
+        }
+
+        // Get Orders
+        String[] accountKeys = new String[accounts.size()];
+        Iterator<AccountInfo> iterator = accounts.iterator();
+        for (int i = 0; i < accountKeys.length; i++) {
+            accountKeys[i] = Integer.toString(iterator.next().getKey());
+        }
+        ArrayList<OrderDetail> orders = api.getOrders(accountKeys);
+        if (orders.size() == 0) {
+            System.out.println("No Orders to Display");
+        } else {
+            System.out.println("Order Requests:");
+            for (OrderDetail orderDetail : orders) {
+                System.out.println(
+                        String.format("Account ID: %s\t\tOrder ID: %s\t\tSymbol: %s\t\tQuantity: %s\t\tStatus: %s",
+                                orderDetail.getAccountID(), orderDetail.getOrderID(), orderDetail.getSymbol(),
+                                orderDetail.getQuantity(), orderDetail.getStatusDescription()));
+            }
+        }
+
         // Get Quotes
         System.out.print("Provide a list of symbols to retrieve quotes (example: MSFT,GOOG):");
         String[] symbols = input.nextLine().split(",");
-        for (Quote quote : api.getQuotes(symbols)) {
+        ArrayList<Quote> quotes = api.getQuotes(symbols);
+        for (Quote quote : quotes) {
             System.out.println(String.format("Symbol: %s\t\tLast: %.2f\t\tLastPriceDisplay: %s\t\t"
                     + "CountryCode: %s\t\tCurrency: %s", quote.getSymbol(), quote.getLast(),
                     quote.getLastPriceDisplay(), quote.getCountryCode(), quote.getCurrency()));
+        }
+
+        Order order = new Order(quotes.get(0).getDescription(), null, "EQ", quotes.get(0).getSymbol(), "1",
+                quotes.get(0).getLastPriceDisplay(), null, "Limit", "Intelligent", "DAY",
+                Integer.parseInt(accountKeys[0]), "", "buy", true, null, new ArrayList<GroupOrder>());
+        System.out.println(String.format("Trying to place an order of %s share of %s at %s",
+                order.getQuantity(), order.getSymbol(), order.getLimitPrice()));
+        // Get an Order Estimate
+        ArrayList<Confirm> confirmations = api.confirmOrder(order);
+        System.out.println(String.format("SummaryMessage: %s", confirmations.get(0).getSummaryMessage()));
+
+        // Place an Order
+        ArrayList<OrderResult> orderResults = api.placeOrder(order);
+        System.out.println(String.format("Message: %s\t\tStatus Code: %s",
+                orderResults.get(0).getMessage(),
+                orderResults.get(0).getStatusCode()));
+
+        // Check Order Status
+        orders = api.getOrders(accountKeys);
+        if (orders.size() == 0) {
+            System.out.println("No Orders to Display");
+        } else {
+            System.out.println("Order Requests:");
+            for (OrderDetail orderDetail : orders) {
+                System.out.println(
+                        String.format("Account ID: %s\t\tOrder ID: %s\t\tSymbol: %s\t\tQuantity: %s\t\tStatus: %s",
+                                orderDetail.getAccountID(), orderDetail.getOrderID(), orderDetail.getSymbol(),
+                                orderDetail.getQuantity(), orderDetail.getStatusDescription()));
+            }
         }
 
         // Get Streaming Barchart
