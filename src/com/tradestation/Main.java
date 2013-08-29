@@ -48,6 +48,20 @@ public class Main {
         Token token = api.getAccessToken();
         System.out.println("Token looks like this: " + token.getAccess_token());
 
+        // Get Refresh Token:
+        // The Access Token will expire after the time reference in token.getExpires_in()
+        // if you do not want to log back in with user credentials, you need to refresh the token, here's how:
+        System.out.println("Generating Refresh Token");
+        api.setAccessToken(token);
+        token = api.getAccessToken();
+        System.out.println("Token looks like this: " + token.getAccess_token());
+
+        // Refresh again
+        System.out.println("Generating Another Refresh Token");
+        api.setAccessToken(token);
+        token = api.getAccessToken();
+        System.out.println("Token looks like this: " + token.getAccess_token());
+
         Scanner input = new Scanner(System.in);
 
         // Get Accounts

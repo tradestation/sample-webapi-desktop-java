@@ -118,6 +118,43 @@ public class TradeStationWebApi {
         this.token = token;
     }
 
+    public void setAccessToken(Token token) {
+        if (token == null || token.getRefresh_token().isEmpty()) return;
+        Request request = new RequestBuilder("POST")
+                .setUrl(BASEURL + "security/authorize")
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .setBody("grant_type=refresh_token&client_id=" + APIKEY + "&redirect_uri=" + CALLBACK
+                        + "&client_secret=" + APISECRET + "&refresh_token=" + token.getRefresh_token())
+                .build();
+
+        ListenableFuture<Response> response = null;
+        try {
+            response = client.executeRequest(request, new AsyncCompletionHandler<Response>() {
+                @Override
+                public Response onCompleted(Response response) throws Exception {
+                    return response;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Token newToken = null;
+        if (response != null) {
+            try {
+                String json = response.get().getResponseBody();
+                newToken = mapper.readValue(json, Token.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.token.setAccess_token(newToken.getAccess_token());
+        this.token.setToken_type(newToken.getToken_type());
+        this.token.setUserid(newToken.getUserid());
+        this.token.setExpires_in(newToken.getExpires_in());
+    }
+
     public Thread getBarchartStream(Observer observer, String symbol, int interval, String intervalType, String startDate) {
         Request request = new RequestBuilder("GET")
                 .setUrl(BASEURL + String.format("stream/barchart/%s/%s/%s/%s",
