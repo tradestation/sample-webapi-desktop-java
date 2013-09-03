@@ -12,6 +12,7 @@ public class Confirm {
     private String RelationIdentifier;
     private String Route;
     private String SummaryMessage;
+    private String AccountCurrency;
     private double EstimatedCommission;
     private String EstimatedCommissionDisplay;
     private double EstimatedCost;
@@ -19,6 +20,8 @@ public class Confirm {
     private double EstimatedPrice;
     private String EstimatedPriceDisplay;
     private String Duration;
+    private String InitialMarginDisplay;
+    private String ProductCurrency;
     private String Message;
     private String StatusCode;
 
@@ -74,6 +77,15 @@ public class Confirm {
     @JsonProperty("SummaryMessage")
     public void setSummaryMessage(String summaryMessage) {
         SummaryMessage = summaryMessage;
+    }
+
+    public String getAccountCurrency() {
+        return AccountCurrency;
+    }
+
+    @JsonProperty("AccountCurrency")
+    public void setAccountCurrency(String accountCurrency) {
+        AccountCurrency = accountCurrency;
     }
 
     public double getEstimatedCommission() {
@@ -137,6 +149,24 @@ public class Confirm {
     @JsonProperty("Duration")
     public void setDuration(String duration) {
         Duration = duration;
+    }
+
+    public String getInitialMarginDisplay() {
+        return InitialMarginDisplay;
+    }
+
+    @JsonProperty("InitialMarginDisplay")
+    public void setInitialMarginDisplay(String initialMarginDisplay) {
+        InitialMarginDisplay = initialMarginDisplay;
+    }
+
+    public String getProductCurrency() {
+        return ProductCurrency;
+    }
+
+    @JsonProperty("ProductCurrency")
+    public void setProductCurrency(String productCurrency) {
+        ProductCurrency = productCurrency;
     }
 
     public String getMessage() {
