@@ -2,6 +2,7 @@ package com.tradestation.webapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.ning.http.client.*;
@@ -272,8 +273,16 @@ public class TradeStationWebApi {
         if (response != null) {
             try {
                 String json = response.get().getResponseBody();
-                result = mapper.readValue(json, new TypeReference<ArrayList<OrderResult>>() {
-                });
+                try {
+                    result = mapper.readValue(json, new TypeReference<ArrayList<OrderResult>>() {
+                    });
+                } catch (JsonMappingException e) {
+                    // OrderResult Array failed, try single (most-likely an error)
+                    result = new ArrayList<OrderResult>();
+                    OrderResult res = mapper.readValue(json, new TypeReference<OrderResult>() {
+                    });
+                    result.add(res);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -314,8 +323,16 @@ public class TradeStationWebApi {
         if (response != null) {
             try {
                 String json = response.get().getResponseBody();
-                result = mapper.readValue(json, new TypeReference<ArrayList<Confirm>>() {
-                });
+                try {
+                    result = mapper.readValue(json, new TypeReference<ArrayList<Confirm>>() {
+                    });
+                } catch (JsonMappingException e) {
+                    // Confirmation Array failed, try single (most-likely an error)
+                    result = new ArrayList<Confirm>();
+                    Confirm res = mapper.readValue(json, new TypeReference<Confirm>() {
+                    });
+                    result.add(res);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

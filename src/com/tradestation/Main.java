@@ -101,14 +101,21 @@ public class Main {
                     quote.getLastPriceDisplay(), quote.getCountryCode(), quote.getCurrency()));
         }
 
+        // New up an order
         Order order = new Order(quotes.get(0).getDescription(), null, "EQ", quotes.get(0).getSymbol(), "1",
                 quotes.get(0).getLastPriceDisplay(), null, "Limit", "Intelligent", "DAY",
                 Integer.parseInt(accountKeys[0]), "", "buy", true, null, new ArrayList<GroupOrder>());
         System.out.println(String.format("Trying to place an order of %s share of %s at %s",
                 order.getQuantity(), order.getSymbol(), order.getLimitPrice()));
+
         // Get an Order Estimate
-        ArrayList<Confirm> confirmations = api.confirmOrder(order);
-        System.out.println(String.format("SummaryMessage: %s", confirmations.get(0).getSummaryMessage()));
+        Confirm confirmation = api.confirmOrder(order).get(0);
+        if (confirmation.getStatusCode() != null && confirmation.getStatusCode().equals("400")) {
+            System.out.println(String.format("Message: %s\t\tStatus Code: %s",
+                    confirmation.getMessage(), confirmation.getStatusCode()));
+        } else {
+            System.out.println(String.format("SummaryMessage: %s", confirmation.getSummaryMessage()));
+        }
 
         // Place an Order
         ArrayList<OrderResult> orderResults = api.placeOrder(order);
