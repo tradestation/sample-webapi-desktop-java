@@ -97,12 +97,13 @@ public class Main {
         ArrayList<Quote> quotes = api.getQuotes(symbols);
         for (Quote quote : quotes) {
             System.out.println(String.format("Symbol: %s\t\tLast: %.2f\t\tLastPriceDisplay: %s\t\t"
-                    + "CountryCode: %s\t\tCurrency: %s", quote.getSymbol(), quote.getLast(),
-                    quote.getLastPriceDisplay(), quote.getCountryCode(), quote.getCurrency()));
+                    + "CountryCode: %s\t\tCurrency: %s\t\tAsset Type: %s", quote.getSymbol(), quote.getLast(),
+                    quote.getLastPriceDisplay(), quote.getCountryCode(), quote.getCurrency(), quote.getAssetType()));
         }
 
         // New up an order
-        Order order = new Order(quotes.get(0).getDescription(), null, "EQ", quotes.get(0).getSymbol(), "1",
+        Order order = new Order(quotes.get(0).getDescription(), null,
+                QuoteAssetTypeToOrderAssetType(quotes.get(0).getAssetType()), quotes.get(0).getSymbol(), "1",
                 quotes.get(0).getLastPriceDisplay(), null, "Limit", "Intelligent", "DAY",
                 Integer.parseInt(accountKeys[0]), "", "buy", true, null, new ArrayList<GroupOrder>());
         System.out.println(String.format("Trying to place an order of %s share of %s at %s",
@@ -180,4 +181,17 @@ public class Main {
         }
     }
 
+    private static String QuoteAssetTypeToOrderAssetType(String quoteAssetType) {
+        if (quoteAssetType.equals("STOCK") || quoteAssetType.equals("EQUITY")) {
+            return "EQ";
+        } else if (quoteAssetType.equals("FUTURE")) {
+            return "FU";
+        } else if (quoteAssetType.equals("FOREX")) {
+            return "FX";
+        } else if (quoteAssetType.equals("OPTION")) {
+            return "OP";
+        } else {
+            return quoteAssetType;
+        }
+    }
 }
