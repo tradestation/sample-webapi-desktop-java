@@ -24,6 +24,7 @@ public class Confirm {
     private String ProductCurrency;
     private String Message;
     private String StatusCode;
+    private String OrderConfirmId;
 
     public String get__type() {
         return __type;
@@ -185,5 +186,14 @@ public class Confirm {
     @JsonProperty("StatusCode")
     public void setStatusCode(String statusCode) {
         StatusCode = statusCode;
+    }
+
+    public String getOrderConfirmId() {
+        return OrderConfirmId;
+    }
+
+    @JsonProperty("OrderConfirmId")
+    public void setOrderConfirmId(String orderConfirmId) {
+        OrderConfirmId = orderConfirmId;
     }
 }
